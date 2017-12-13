@@ -1,5 +1,6 @@
 # importamos la libreria
 import cv2
+import numpy as np
 
 def cartoonifyImg(frame):
     #Mascara
@@ -70,18 +71,54 @@ def evilImg(frame):
 
     return cv2.addWeighted(big, 0.99, filtro, 0.5, 0)
 
+def PosicionCara(frame):
+    img = np.copy(frame)
+    #img = np.zeros((512, 512, 3), np.uint8)
+    color = (0, 255, 255)
+    grosor = 4
+    # usar 70% de pantalla como altura de la cara
+    width, height, dim = frame.shape
+    sw = width
+    sh = height
+
+    caraH = sh/2 * 50/100 #radio de la elipse
+    caraW = caraH * 62/100
+    #dibujar "cara"de ayuda para detectar mas facil el color de piel
+    cv2.ellipse(img, (sh/2, sw/2), (caraW, caraH), 0, 0, 360, color,grosor)
+    ojoW = caraW * 23/100
+    ojoH = caraH * 11/100
+    ojoX = caraW * 40/100
+    ojoY = caraH * 70/100
+
+    #angulo y desfase ojo
+    ojoA = 15 #en grados
+    ojoYdesfase = 11
+    #ojo derecho
+    cv2.ellipse(img, (sw/2+ojoX, sh/2-ojoY), (ojoW, ojoH), 0, 180+ojoA, 360-ojoA, color,grosor)
+    cv2.ellipse(img, (sw/2+ojoX, sh/2-ojoY-ojoYdesfase), (ojoW, ojoH), 0, 0+ojoA, 180-ojoA, color,grosor)
+    #ojo izquierdo
+    cv2.ellipse(img, (sw/2+3*ojoX, sh/2-ojoY), (ojoW, ojoH), 0, 180+ojoA, 360-ojoA, color,grosor)
+    cv2.ellipse(img, (sw/2+3*ojoX, sh/2-ojoY-ojoYdesfase), (ojoW, ojoH), 0, 0+ojoA, 180-ojoA, color,grosor)
+
+
+
+    return img
+
 cap = cv2.VideoCapture(0)
+
 
 while True:
     # Ret --> Verdadero o falso si fue capaz de leer la informacion de la camara
     # frame --> lee el siguiente frame del video
     ret, frame = cap.read()
     #cartoon = cartoonifyImg(frame)
-    evil = evilImg(frame)
+    #evil = evilImg(frame)
+    pos_cara = PosicionCara(frame)
 
     cv2.imshow('Original', frame)
     #cv2.imshow('Cartoonifier', cartoon)
-    cv2.imshow('Evil', evil)
+    #cv2.imshow('Evil', evil)
+    cv2.imshow('Alien', pos_cara)
 
 
     # filtro para convertir la imagen a blanco y negro
